@@ -1,5 +1,7 @@
 package org.ecommerce.project.controller;
 
+import jakarta.validation.Valid;
+import org.ecommerce.project.config.AppConstants;
 import org.ecommerce.project.payload.ProductDTO;
 import org.ecommerce.project.payload.ProductResponse;
 import org.ecommerce.project.service.ProductService;
@@ -7,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api")
@@ -16,8 +21,13 @@ public class ProductController {
 
     // Finding all the products
     @GetMapping("/public/products")
-    public ResponseEntity<ProductResponse> getAllProducts() {
-        ProductResponse productResponse = productService.getAllProducts();
+    public ResponseEntity<ProductResponse> getAllProducts(
+            @RequestParam(name="pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+            @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
+            @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_PRODUCTS_BY, required = false) String sortBy,
+            @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_DIRECTION, required = false) String sortOrder
+    ) {
+        ProductResponse productResponse = productService.getAllProducts(pageNumber, pageSize, sortBy, sortOrder);
         return new ResponseEntity<>(productResponse, HttpStatus.OK);
     }
 
@@ -39,7 +49,7 @@ public class ProductController {
 
     // Adding the product
     @PostMapping("/admin/categories/{categoryId}/product")
-    public ResponseEntity<ProductDTO> addProduct(@RequestBody ProductDTO productDTO, @PathVariable Long categoryId) {
+    public ResponseEntity<ProductDTO> addProduct(@Valid @RequestBody ProductDTO productDTO, @PathVariable Long categoryId) {
         ProductDTO productDTO_response = productService.addProduct(categoryId, productDTO);
         return new ResponseEntity<>(productDTO_response, HttpStatus.CREATED);
     }
@@ -47,7 +57,7 @@ public class ProductController {
 
     // Updating the user (accepting the Profile object and setting it, and in return ProductDTO)
     @PutMapping("/admin/products/{productId}")
-    public ResponseEntity<ProductDTO> updateTheProduct(@RequestBody ProductDTO productDTO, @PathVariable Long productId) {
+    public ResponseEntity<ProductDTO> updateTheProduct(@Valid @RequestBody ProductDTO productDTO, @PathVariable Long productId) {
         ProductDTO productDTO_response = productService.updateProduct(productDTO, productId);
         return new ResponseEntity<>(productDTO_response, HttpStatus.OK);
     }
@@ -58,6 +68,13 @@ public class ProductController {
     public ResponseEntity<String> deleteProd(@PathVariable Long productId) {
         String response_msg = productService.deleteProduct(productId);
         return new ResponseEntity<>(response_msg, HttpStatus.OK);
+    }
+
+    // Update the Image
+    @PutMapping("/products/{productId}/image")
+    public ResponseEntity<ProductDTO> updateImage(@PathVariable Long productId, @RequestParam("image") MultipartFile image) throws IOException {
+        ProductDTO updatedProductDTO = productService.updateProductImage(productId, image);
+        return new ResponseEntity<>(updatedProductDTO, HttpStatus.OK);
     }
 
 }
