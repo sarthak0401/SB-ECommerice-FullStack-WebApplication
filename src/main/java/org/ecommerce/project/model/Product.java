@@ -11,7 +11,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-
+@Table(name = "products")
+//@ToString   // @Data of lombok already contains the TwoString method, which displays the whole object info related to class in string
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -35,4 +36,10 @@ public class Product {
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category; // Category of the product
+
+
+    // We are adding a column to associate seller(user having Seller role) with the Products table, so many products can have one seller, therefore (M:1)
+    @ManyToOne
+    @JoinColumn(name = "seller_id")
+    private User user;
 }
