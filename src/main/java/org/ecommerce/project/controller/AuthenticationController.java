@@ -13,7 +13,9 @@ import org.ecommerce.project.security.response.MessageResponse;
 import org.ecommerce.project.security.response.UserInfoResponse;
 import org.ecommerce.project.security.services.UserDetailsImplementation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,13 +23,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
 @RestController
+@RequestMapping("/api/auth")
 public class AuthenticationController {
 
     @Autowired
@@ -70,13 +71,14 @@ public class AuthenticationController {
         //this is the custom UserDetails implementation
 
         // We need to get jwt token, username and roles from the userDetails and then send them as the response
-        String jwtToken = jwtUtils.generateTokenFromUsername(userDetails);
+        ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
+
         List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority()).toList();
         // This is getting the role from every item inside the List
 
-        UserInfoResponse response = new UserInfoResponse(userDetails.getId(), userDetails.getUsername(), jwtToken, roles); // This is the all args constructor of lombok from UserDetailsImplementation class that we have defined
+        UserInfoResponse response = new UserInfoResponse(userDetails.getId(), userDetails.getUsername(), jwtCookie.getValue(), roles); // This is the constructor from UserDetailsImplementation class that we have defined
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString()).body(response);
     }
 
 
@@ -127,6 +129,38 @@ public class AuthenticationController {
         user.setRoles(roles);
         userRepository.save(user);
         return ResponseEntity.ok(new MessageResponse("User Registered Successfully"));
+    }
+
+    // Getting the name of the current user authenticated, so we can display this name in the header of the website, next to the profile photo, we can display this username
+    @GetMapping("/user/currentUser/username")
+    public String currentUser_username(Authentication authentication){
+        if(authentication!=null) {
+            return authentication.getName();
+        }
+        else return "";
+    }
+
+
+    // Getting the details of the current authenticated user
+    @GetMapping("/user/currentUser/details")
+    public ResponseEntity<?> currentUser_details(Authentication authentication){
+        UserDetailsImplementation userDetails = (UserDetailsImplementation) authentication.getPrincipal();
+        // .getPrincipal() gives the details of the user, and we are casting it into UserDetailsImplementation type
+
+        List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority()).toList();
+        // This is getting the role from every item inside the List
+
+        UserInfoResponse response = new UserInfoResponse(userDetails.getId(), userDetails.getUsername(), roles); // This is the constructor from UserDetailsImplementation class that we have defined
+
+        return ResponseEntity.ok().body(response);
+    }
+
+
+    // It returns a cookie that doesnt contain JWt token in it (clean cookie)
+    @PostMapping("/signout")
+    public ResponseEntity<?> signinOutUser(){
+        ResponseCookie responseCookie = jwtUtils.getCleanCookie();
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, responseCookie.toString()).body(new MessageResponse("You have been signed out"));
     }
 }
 
