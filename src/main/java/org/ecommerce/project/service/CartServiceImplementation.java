@@ -8,7 +8,6 @@ import org.ecommerce.project.model.Cart;
 import org.ecommerce.project.model.CartItem;
 import org.ecommerce.project.model.Product;
 import org.ecommerce.project.payload.CartDTO;
-import org.ecommerce.project.payload.ProductDTO;
 import org.ecommerce.project.repositories.CartItemRepository;
 import org.ecommerce.project.repositories.CartRepository;
 import org.ecommerce.project.repositories.ProductRepository;
@@ -18,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -107,15 +105,15 @@ public class CartServiceImplementation implements CartService{
         // Return updated cart
         CartDTO cartDTO =  modelMapper.map(cart, CartDTO.class);
 
-        List<CartItem> cartItems = cart.getCartItems();
-
-        Stream<ProductDTO> productStream = cartItems.stream().map(item -> {
-            ProductDTO map = modelMapper.map(item.getProduct(), ProductDTO.class);
-            map.setQuantity(item.getQuantity());
-            return map;
-        });
-
-        cartDTO.setProducts(productStream.toList());
+//        List<CartItem> cartItems = cart.getCartItems();
+//
+//        Stream<ProductDTO> productStream = cartItems.stream().map(item -> {
+//            ProductDTO map = modelMapper.map(item.getProduct(), ProductDTO.class);
+//            map.setQuantity(item.getQuantity());
+//            return map;
+//        });
+//
+//        cartDTO.setProducts(productStream.toList());
 
         return cartDTO;
     }
@@ -133,13 +131,13 @@ public class CartServiceImplementation implements CartService{
 
             // We are getting the list of all the cart items and extracting product from it and converting each one of them into productDTO's
 
-            List<ProductDTO> productDTOList = cart.getCartItems().stream().map(cartItem ->
-            {
-                ProductDTO productDTO = modelMapper.map(cartItem.getProduct(), ProductDTO.class);
-                return productDTO;
-            }).toList();
-
-            cartDTO.setProducts(productDTOList);
+//            List<ProductDTO> productDTOList = cart.getCartItems().stream().map(cartItem ->
+//            {
+//                ProductDTO productDTO = modelMapper.map(cartItem.getProduct(), ProductDTO.class);
+//                return productDTO;
+//            }).toList();
+//
+//            cartDTO.setProducts(productDTOList);
 
             return cartDTO;
         }).toList();
@@ -152,10 +150,10 @@ public class CartServiceImplementation implements CartService{
     public CartDTO getUserCartById(Long userID) {
         Cart cart = cartRepository.findCartByUser_UserId(userID);
         CartDTO cartDTO = modelMapper.map(cart, CartDTO.class);
-        List<ProductDTO> productDTOList = cart.getCartItems().stream().map(item -> {
-            return modelMapper.map(item.getProduct(), ProductDTO.class);
-        }).toList();
-        cartDTO.setProducts(productDTOList);
+//        List<ProductDTO> productDTOList = cart.getCartItems().stream().map(item -> {
+//            return modelMapper.map(item.getProduct(), ProductDTO.class);
+//        }).toList();
+//        cartDTO.setProducts(productDTOList);
 
         return cartDTO;
     }
@@ -170,12 +168,12 @@ public class CartServiceImplementation implements CartService{
         // here we are setting the quantity as the actual quantity input by the user, without this, the total available quantity in the stock was getting printed
 
         cart.getCartItems().forEach(c->c.getProduct().setQuantity(c.getQuantity()));
-        List<ProductDTO> productDTOList = cart.getCartItems().stream().map(item -> {
-            return modelMapper.map(item.getProduct(), ProductDTO.class);
-        }).toList();
+//        List<ProductDTO> productDTOList = cart.getCartItems().stream().map(item -> {
+//            return modelMapper.map(item.getProduct(), ProductDTO.class);
+//        }).toList();
 
         CartDTO cartDTO =  modelMapper.map(cart, CartDTO.class);
-        cartDTO.setProducts(productDTOList);
+//        cartDTO.setProducts(productDTOList);
 
         return cartDTO;
     }
@@ -190,10 +188,11 @@ public class CartServiceImplementation implements CartService{
     public CartDTO updateProductQuantityInCart(Long productId, Integer quantity) {
 
         // This method getLoggedInUser() inside authUtils give logged in user, and then we can use the getter on that object to get the userId;
-        Long cartId = authUtils.getLoggedInUser().getUserId();
+        Cart cart = getOrCreateCart();
+        Long cartId = cart.getCartId();
 
-        // Getting the cart first, if doenst exist then throw an exception
-        Cart cart = cartRepository.findById(cartId).orElseThrow(()-> new ResourceNotFoundException("Cart", "cartID", cartId));
+//        // Getting the cart first, if doenst exist then throw an exception
+//        Cart cart = cartRepository.findById(cartId).orElseThrow(()-> new ResourceNotFoundException("Cart", "cartID", cartId));
 
 
         // Retrieving the product details from the database from the id
@@ -218,7 +217,11 @@ public class CartServiceImplementation implements CartService{
         }
 
         if (newQty==0 ){
-            deleteProductFromCart(cartId, productId);
+            cart.setTotalPrice(cart.getTotalPrice()
+                    - (cartItem.getProductPrice() * cartItem.getQuantity()));
+
+            cart.getCartItems().remove(cartItem);
+            cartItemRepository.delete(cartItem);
         }
         else {
             cartItem.setQuantity(cartItem.getQuantity() + quantity);   // If its delete quantity is = -1, so it will decrease the quantity
@@ -237,15 +240,29 @@ public class CartServiceImplementation implements CartService{
 
 
         CartDTO cartDTO =  modelMapper.map(cart, CartDTO.class);
-        List<ProductDTO> productDTOS = cart.getCartItems().stream().map(item-> {
-            ProductDTO prod = modelMapper.map(item.getProduct(), ProductDTO.class);
-            prod.setQuantity(item.getQuantity());   // we need to set the quantity of the each item into its respective product.
-            return prod;
-        }).toList();
-
-        cartDTO.setProducts(productDTOS);
+//        List<ProductDTO> productDTOS = cart.getCartItems().stream().map(item-> {
+//            ProductDTO prod = modelMapper.map(item.getProduct(), ProductDTO.class);
+//            prod.setQuantity(item.getQuantity());   // we need to set the quantity of the each item into its respective product.
+//            return prod;
+//        }).toList();
+//
+//        cartDTO.setProducts(productDTOS);
         return cartDTO;
     }
+
+    private CartDTO buildCartDTO(Cart cart) {
+        CartDTO cartDTO = modelMapper.map(cart, CartDTO.class);
+
+//        List<ProductDTO> productDTOS = cart.getCartItems().stream().map(item -> {
+//            ProductDTO prod = modelMapper.map(item.getProduct(), ProductDTO.class);
+//            prod.setQuantity(item.getQuantity());
+//            return prod;
+//        }).toList();
+//
+//        cartDTO.setProducts(productDTOS);
+        return cartDTO;
+    }
+
 
     @Transactional
     @Override
@@ -258,6 +275,7 @@ public class CartServiceImplementation implements CartService{
         // Before deleting we will update the total price
         cart.setTotalPrice(cart.getTotalPrice() - (existingItem.getProductPrice() * existingItem.getQuantity()));
 
+        cart.getCartItems().remove(existingItem);
         cartItemRepository.delete(existingItem);
 
         return "Product with id : " + existingItem.getProduct().getProductId() + " is deleted successfully";
