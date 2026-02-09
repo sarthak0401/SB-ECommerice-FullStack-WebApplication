@@ -2,10 +2,14 @@ package org.ecommerce.project.service;
 
 import org.ecommerce.project.exceptions.APIException;
 import org.ecommerce.project.exceptions.ResourceNotFoundException;
+import org.ecommerce.project.model.Cart;
 import org.ecommerce.project.model.Category;
 import org.ecommerce.project.model.Product;
+import org.ecommerce.project.payload.CartDTO;
+import org.ecommerce.project.payload.CartItemDTO;
 import org.ecommerce.project.payload.ProductDTO;
 import org.ecommerce.project.payload.ProductResponse;
+import org.ecommerce.project.repositories.CartRepository;
 import org.ecommerce.project.repositories.CategoryRepo;
 import org.ecommerce.project.repositories.ProductRepository;
 import org.modelmapper.ModelMapper;
@@ -38,6 +42,10 @@ public class ProductServiceImplementation implements ProductService {
 
     @Value("${project.image_path}")
     private String path;
+    @Autowired
+    private CartRepository cartRepository;
+    @Autowired
+    private CartService cartService;
 
 
     @Override
@@ -158,6 +166,19 @@ public class ProductServiceImplementation implements ProductService {
         productRetrieved.setQuantity(productDTO.getQuantity());
 
         Product savedProd = productRepository.save(productRetrieved);
+
+        List<Cart> carts = cartRepository.findCartByProductId(productId);
+        List<CartDTO> cartDTOS = carts.stream().map(cart -> {
+            CartDTO cartDTO = modelMapper.map(cart, CartDTO.class);
+
+            List<CartItemDTO> cartItemDTOSList = cart.getCartItems().stream().map(p-> modelMapper.map(p, CartItemDTO.class)).toList();
+
+            cartDTO.setItems(cartItemDTOSList);
+            return cartDTO;
+        }).toList();
+
+        cartDTOS.forEach(cart->cartService.updateProductInCart(cart.getCartId(), productId));
+
         return modelMapper.map(savedProd, ProductDTO.class);
 
     }

@@ -1,6 +1,5 @@
 package org.ecommerce.project.controller;
 
-import org.ecommerce.project.model.Cart;
 import org.ecommerce.project.payload.CartDTO;
 import org.ecommerce.project.repositories.CartRepository;
 import org.ecommerce.project.service.CartService;
@@ -56,10 +55,7 @@ public class CartController {
     @GetMapping("/carts/user/cart")
     public ResponseEntity<CartDTO> getCartByID(){
             String emailId = authUtils.loggedInUserEmail();
-            Cart cart = cartRepository.findCartByUser_Email(emailId);
-            Long cartId = cart.getCartId();
-
-            CartDTO cartDTO = cartService.getCart(emailId, cartId);
+            CartDTO cartDTO = cartService.getCart(emailId);
             return new ResponseEntity<>(cartDTO, HttpStatus.OK);
     }
 

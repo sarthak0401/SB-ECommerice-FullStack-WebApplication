@@ -13,10 +13,12 @@ public interface CartService {
 
     CartDTO getUserCartById(Long userID);
 
-    CartDTO getCart(String emailId, Long cartId);
+    CartDTO getCart(String emailId);
 
     @Transactional
     CartDTO updateProductQuantityInCart(Long productId, Integer quantity);
 
     String deleteProductFromCart(Long cartId, Long productId);
+
+    void updateProductInCart(Long cartId, Long productId);
 }
