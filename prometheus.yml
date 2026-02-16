@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 5s
+
+
+scrape_configs:
+  - job_name: 'sb-ecomm-app'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+     - targets: ['host.docker.internal:8080']
+       # - targets: ['localhost:8080']   important, localhost in docker world means the same container, not the host, if we want to access the host where the backend server is running, we need to specify host.docker.internal, and also --add-host while running the docker container

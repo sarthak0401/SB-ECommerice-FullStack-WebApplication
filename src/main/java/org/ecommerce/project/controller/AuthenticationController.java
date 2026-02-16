@@ -1,6 +1,7 @@
 package org.ecommerce.project.controller;
 
 import jakarta.validation.Valid;
+import org.ecommerce.project.metrics.MetricsService;
 import org.ecommerce.project.model.AppRoles;
 import org.ecommerce.project.model.Role;
 import org.ecommerce.project.model.User;
@@ -46,6 +47,9 @@ public class AuthenticationController {
     @Autowired
     RoleRepository roleRepository;
 
+    @Autowired
+    private MetricsService metricsService;
+
     @PostMapping("/signin")
     public ResponseEntity<?> authentication(@RequestBody LoginRequest loginRequest){
         Authentication authentication;
@@ -61,6 +65,8 @@ public class AuthenticationController {
             Map<String, Object> map = new HashMap<>();
             map.put("message", "Bad Credentials");
             map.put("Status" , false);
+            // login failed
+            metricsService.loginFailure();
 
             return new ResponseEntity<>(map, HttpStatus.UNAUTHORIZED);
         }
@@ -77,6 +83,9 @@ public class AuthenticationController {
         // This is getting the role from every item inside the List
 
         UserInfoResponse response = new UserInfoResponse(userDetails.getId(), userDetails.getUsername(), jwtCookie.getValue(), roles); // This is the constructor from UserDetailsImplementation class that we have defined
+
+        // login is successful
+        metricsService.loginSuccess();
 
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString()).body(response);
     }

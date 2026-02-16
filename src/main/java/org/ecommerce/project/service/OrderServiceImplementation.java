@@ -3,6 +3,7 @@ package org.ecommerce.project.service;
 import jakarta.transaction.Transactional;
 import org.ecommerce.project.exceptions.APIException;
 import org.ecommerce.project.exceptions.ResourceNotFoundException;
+import org.ecommerce.project.metrics.MetricsService;
 import org.ecommerce.project.model.*;
 import org.ecommerce.project.payload.OrderDTO;
 import org.ecommerce.project.payload.OrderItemDTO;
@@ -36,17 +37,26 @@ public class OrderServiceImplementation implements OrderService{
     @Autowired
     private ModelMapper modelMapper;
 
+    @Autowired
+    private MetricsService metricsService;
+
     @Override
     @Transactional
     public OrderDTO placeOrder(String emailIdOfLoggedInUser, String paymentMethod, OrderRequestDTO orderRequestDTO) {
         // Getting the cart of the user
         Cart cart = cartRepository.findCartByUser_Email(emailIdOfLoggedInUser);
-        if(cart==null) throw new ResourceNotFoundException("Cart", "email", emailIdOfLoggedInUser);
+        if(cart==null) {
+            metricsService.orderFailed();
+            throw new ResourceNotFoundException("Cart", "email", emailIdOfLoggedInUser);
+        };
         // If the exception happens, we stop right here, rest of the things in the method will not execute
 
 
         // Getting the address from the Address entity using addressId passed from orderRequestDTO
-        Address address = addressRepository.findById(orderRequestDTO.getAddressId()).orElseThrow(()-> new ResourceNotFoundException("Address", "addressId", orderRequestDTO.getAddressId()));
+        Address address = addressRepository.findById(orderRequestDTO.getAddressId()).orElseThrow(()-> {
+            metricsService.orderFailed();
+            return new ResourceNotFoundException("Address", "addressId", orderRequestDTO.getAddressId());
+        });
 
         // Creating order object and creating payment info object and mapping them both
         Order order = new Order();
@@ -77,7 +87,10 @@ public class OrderServiceImplementation implements OrderService{
 
         // We need to get the items from the cart (its present in the list of CartItems) and add them into the orderItems
         List<CartItem> cartItemList = cart.getCartItems();
-        if(cartItemList.isEmpty()) throw new APIException("Cart is empty!");
+        if(cartItemList.isEmpty()) {
+            metricsService.orderFailed();
+            throw new APIException("Cart is empty!");
+        };
 
         // Creating the OrderItem list
         List<OrderItem> orderItems = new ArrayList<>();
@@ -141,6 +154,10 @@ public class OrderServiceImplementation implements OrderService{
         cart.setTotalPrice(0.0); // setting the total price of cart back to 0, after order is placed
         cartRepository.save(cart);
 
+
+        // marking the order is created successfully
+        metricsService.orderCreated();
+        // And with every exception in the place order method we increased the orderFailed counter
         return orderDTO;
     }
 }

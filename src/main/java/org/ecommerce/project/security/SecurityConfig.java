@@ -74,6 +74,8 @@ public class SecurityConfig  {
                 .requestMatchers("/api/test/**").permitAll()
                 .requestMatchers("/images/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
+                .requestMatchers("/actuator/prometheus").permitAll()
+                .requestMatchers("/actuator/health").permitAll()
                 .anyRequest().authenticated());
 
 
