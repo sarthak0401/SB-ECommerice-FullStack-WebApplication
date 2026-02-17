@@ -1,4 +1,4 @@
-package org.ecommerce.project.service;
+package org.ecommerce.project.redis.rate_limiter;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -7,10 +7,10 @@ import java.time.Duration;
 import java.util.List;
 
 @Service
-public class RedisRateLimiterService {
+public class RedisRateLimiterServiceImpl {
     private final StringRedisTemplate redisTemplate;
 
-    public RedisRateLimiterService(StringRedisTemplate redisTemplate) {
+    public RedisRateLimiterServiceImpl(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
