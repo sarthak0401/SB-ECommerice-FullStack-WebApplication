@@ -1,5 +1,6 @@
 package org.ecommerce.project.redis.rate_limiter;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -7,7 +8,8 @@ import java.time.Duration;
 import java.util.List;
 
 @Service
-public class RedisRateLimiterServiceImpl {
+@Profile({"dev","docker","prod"})
+public class RedisRateLimiterServiceImpl implements RateLimiterService{
     private final StringRedisTemplate redisTemplate;
 
     public RedisRateLimiterServiceImpl(StringRedisTemplate redisTemplate) {
@@ -49,4 +51,5 @@ public class RedisRateLimiterServiceImpl {
 
         return true;
     }
+
 }

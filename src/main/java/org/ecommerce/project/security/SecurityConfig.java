@@ -3,6 +3,7 @@ package org.ecommerce.project.security;
 import org.ecommerce.project.model.AppRoles;
 import org.ecommerce.project.model.Role;
 import org.ecommerce.project.model.User;
+import org.ecommerce.project.redis.rate_limiter.RateLimiterFilter;
 import org.ecommerce.project.repositories.RoleRepository;
 import org.ecommerce.project.repositories.UserRepository;
 import org.ecommerce.project.security.jwt.AuthEntryPoint;
@@ -40,6 +41,7 @@ public class SecurityConfig  {
 
     @Autowired
     private RateLimiterFilter rateLimiterFilter;
+
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider(){
