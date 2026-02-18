@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: backend
-          image: ecomm-backend:local
-          imagePullPolicy: Never
+          image: sarthakb413/sb-ecommerce-project-backend:3.0
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:
