@@ -102,5 +102,8 @@ Also we have redis limiting set
 
 We can see if same ip tries to hit the login url more than 5 times in a minute we get this response 429 Too many requests
 
+Also when we called multiple signin api request with wrong credentials, we can see there is a spike in the login failure rate
+<img width="1867" height="1008" alt="image" src="https://github.com/user-attachments/assets/740199f2-a6da-42d1-82d9-9f389fe09cf3" />
+
 
 
