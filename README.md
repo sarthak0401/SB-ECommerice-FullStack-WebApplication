@@ -115,7 +115,7 @@ Local memory cache fails across pods, but Redis works as a shared distributed ca
 - All other pods use shared Redis cache
 - Horizontal scaling without database overload
 
-Full distributed behaviour demo: [demo-k8s.md](./demo-k8s.md)
+Full distributed behaviour demo: [k8s-demo.md](./k8s-demo.md)
 
 ---
 
@@ -151,7 +151,7 @@ Every feature is demonstrated with observable behaviour rather than assumptions.
 See:
 
 - [Local behaviour demo](./demo.md) — local behaviour
-- [Distributed behaviour demo](./demo-k8s.md) — distributed behaviour
+- [Distributed behaviour demo](./k8s-demo.md) — distributed behaviour
 
 ---
 
