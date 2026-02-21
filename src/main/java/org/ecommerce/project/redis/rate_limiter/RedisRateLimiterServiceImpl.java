@@ -8,7 +8,7 @@ import java.time.Duration;
 import java.util.List;
 
 @Service
-@Profile({"dev","docker","prod"})
+@Profile({"k8s","docker","prod", "default"})
 public class RedisRateLimiterServiceImpl implements RateLimiterService{
     private final StringRedisTemplate redisTemplate;
 

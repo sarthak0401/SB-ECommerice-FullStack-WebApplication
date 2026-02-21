@@ -7,20 +7,39 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: root
     ports:
-      - "5433:5432"
+      - "5431:5432"
     volumes:
       - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d ecommerce" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   backend :
-    image: sarthakb413/sb-ecommerce-project-backend:2.0
+    build: .
     container_name: sb-ecomm-backend
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     ports:
       - "8080:8080"
     environment:
-      SPRING_PROFILES_ACTIVE: docker
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CACHE=TRACE
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_DATA_REDIS=TRACE
     env_file:
       - .env
+
+  redis:
+    image: redis:7
+    container_name: sb-ecomm-redis
+    ports:
+      - "6379:6379"
+
 volumes:
   pgdata:

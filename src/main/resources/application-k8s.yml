@@ -14,3 +14,11 @@ spring:
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+
+logging:
+  level:
+    org.springframework.data.redis : TRACE
+    org.springframework.cache : TRACE
+    org.hibernate.sql: DEBUG
+    org.hibernate.orm.jdbc.bind : TRACE

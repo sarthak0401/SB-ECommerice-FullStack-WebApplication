@@ -50,6 +50,8 @@ public class ProductServiceImplementation implements ProductService {
     @Autowired
     private CartService cartService;
 
+    @Autowired
+    private org.springframework.cache.CacheManager cacheManager;
 
     // This CacheEvict clears all the cache entry when the product is changed, allEntries = true, Because we don’t know which page/category/search contains that product → safest invalidation to delete cache for all the entries
     @Override
@@ -92,8 +94,11 @@ public class ProductServiceImplementation implements ProductService {
     }
 
     @Override
-    @Cacheable(value = "products")
+    @Cacheable(value = "products", key = "#pageNumber + '-' + #pageSize + '-' + #sortBy + '-' + #sortOrder")
     public ProductResponse getAllProducts(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
+        // Inside the method:
+        System.out.println("DEBUG: Using Cache Manager -> " + cacheManager.getClass().getName());
+
 
         Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
 
@@ -115,6 +120,7 @@ public class ProductServiceImplementation implements ProductService {
             productResponse.setPageSize(productPage.getSize());
             productResponse.setTotalElements(productPage.getTotalElements());
 
+            System.out.println("🔥 DB HIT: fetching product");
             return productResponse;
         }
         else{

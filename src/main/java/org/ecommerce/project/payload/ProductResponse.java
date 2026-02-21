@@ -17,6 +17,4 @@ public class ProductResponse {
     private int totalPages;
     private boolean isLast;
 
-    public ProductResponse(List<ProductDTO> productDTOS) {
-    }
 }

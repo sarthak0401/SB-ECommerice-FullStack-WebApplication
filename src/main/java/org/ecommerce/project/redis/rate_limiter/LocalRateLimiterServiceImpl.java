@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-@Profile("k8s")
+@Profile({ "dev"})
 public class LocalRateLimiterServiceImpl implements RateLimiterService {
 
     private final Map<String, Integer> requestCounts = new ConcurrentHashMap<>();
